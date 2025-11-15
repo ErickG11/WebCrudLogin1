@@ -1,0 +1,53 @@
+﻿@model WebCrudLogin.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="auth-page">
+    <div class="auth-shell">
+        <!-- Lado informativo -->
+        <section class="auth-info">
+            <h1>Welcome back 👋</h1>
+            <p>Accede para gestionar el inventario de productos. Tu sesión protege el CRUD.</p>
+        </section>
+
+        <!-- Card de Login -->
+        <section class="auth-card">
+            <div class="auth-card__head">
+                <h2 class="auth-card__title">Iniciar sesión</h2>
+            </div>
+            <div class="auth-card__body">
+                <form asp-action="Login" method="post" class="auth-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <div>
+                        <label asp-for="Username" class="auth-label"></label>
+                        <input asp-for="Username" class="auth-input" placeholder="tu_usuario" />
+                        <span class="field-validation-error" asp-validation-for="Username"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Password" class="auth-label"></label>
+                        <input asp-for="Password" class="auth-input" placeholder="••••••••" />
+                        <span class="field-validation-error" asp-validation-for="Password"></span>
+                    </div>
+
+                    <button type="submit" class="auth-btn">Entrar</button>
+
+                    <div class="auth-meta">
+                        ¿No tienes cuenta? <a asp-action="Register">Crear cuenta</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+}

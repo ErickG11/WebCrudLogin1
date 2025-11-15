@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="mt-4">
+    <h1>CampusRide Admin</h1>
+    <p>Panel de administración para gestionar campus, sectores y vehículos de CampusRide.</p>
+
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <p>
+            <a class="btn btn-primary" asp-controller="Sectores" asp-action="Index">Ir a Sectores</a>
+            <a class="btn btn-secondary ms-2" asp-controller="Vehiculos" asp-action="Index">Ir a Vehículos</a>
+        </p>
+    }
+    else
+    {
+        <p>
+            <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+        </p>
+    }
+</div>

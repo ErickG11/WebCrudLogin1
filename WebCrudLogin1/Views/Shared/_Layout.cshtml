@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebCrudLogin</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        header.app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-weight: 700;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-auto-flow: column;
+            gap: 8px;
+        }
+
+        
+        @@media (max-width: 576px) {
+            .nav-grid
+
+        {
+            grid-auto-flow: row;
+            width: 100%;
+        }
+
+        }
+    </style>
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    @{
+        var isAuthPage = (ViewContext.RouteData.Values["Controller"]?.ToString() == "Account");
+    }
+    @if (!isAuthPage)
+    {
+        <header class="app-header">
+            <div class="brand">WebCrudLogin</div>
+            <nav class="nav-grid">
+                <a class="btn btn-link" asp-controller="Home" asp-action="Index">Home</a>
+                <a class="btn btn-link" asp-controller="Products" asp-action="Index">Products</a>
+
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <span class="align-self-center">Hola, @User.Identity!.Name</span>
+                    <!-- Enlace GET a Logout para evitar errores de antiforgery en la demo -->
+                    <a class="btn btn-outline-danger btn-sm"
+                       asp-controller="Account" asp-action="Logout">
+                        Salir
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-link" asp-controller="Account" asp-action="Login">Login</a>
+                    <a class="btn btn-link" asp-controller="Account" asp-action="Register">Registro</a>
+                }
+            </nav>
+        </header>
+    }
+
+    <div class="container py-4">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,56 @@
+﻿@model WebCrudLogin.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Registro";
+}
+
+<div class="auth-page">
+    <div class="auth-shell">
+        <section class="auth-info">
+            <h1>Create your account ✨</h1>
+            <p>Regístrate para acceder a la sección protegida y administrar el CRUD.</p>
+        </section>
+
+        <section class="auth-card">
+            <div class="auth-card__head">
+                <h2 class="auth-card__title">Crear cuenta</h2>
+            </div>
+            <div class="auth-card__body">
+                <form asp-action="Register" method="post" class="auth-form">
+                    @Html.AntiForgeryToken()
+
+                    <div>
+                        <label asp-for="Username" class="auth-label"></label>
+                        <input asp-for="Username" class="auth-input" placeholder="tu_usuario" />
+                        <span class="field-validation-error" asp-validation-for="Username"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Password" class="auth-label"></label>
+                        <input asp-for="Password" class="auth-input" placeholder="••••••••" />
+                        <span class="field-validation-error" asp-validation-for="Password"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="ConfirmPassword" class="auth-label"></label>
+                        <input asp-for="ConfirmPassword" class="auth-input" placeholder="••••••••" />
+                        <span class="field-validation-error" asp-validation-for="ConfirmPassword"></span>
+                    </div>
+
+                    <button type="submit" class="auth-btn">Registrarme</button>
+
+                    <div class="auth-meta">
+                        ¿Ya tienes cuenta? <a asp-action="Login">Inicia sesión</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+}
