@@ -17,8 +17,14 @@ namespace WebCrudLogin.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Username único
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
+                .IsUnique();
+
+            // Cédula también única (dato sensible)
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Cedula)
                 .IsUnique();
 
             modelBuilder.Entity<Sector>()
@@ -33,7 +39,7 @@ namespace WebCrudLogin.Data
                 .HasForeignKey(v => v.ConductorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Dato sensible: placa única en BD
+            // Placa única en BD (dato sensible)
             modelBuilder.Entity<Vehiculo>()
                 .HasIndex(v => v.Placa)
                 .IsUnique();

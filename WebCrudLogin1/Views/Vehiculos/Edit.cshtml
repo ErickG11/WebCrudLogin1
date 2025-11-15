@@ -1,13 +1,14 @@
 ﻿@model WebCrudLogin.Models.Vehiculo
 
 @{
-    ViewData["Title"] = "Registrar Vehículo";
+    ViewData["Title"] = "Editar Vehículo";
 }
 
-<h2>Registrar Vehículo</h2>
+<h2>Editar Vehículo</h2>
 
-<form asp-action="Create" method="post">
+<form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
 
     <div asp-validation-summary="All" class="text-danger"></div>
 
@@ -41,12 +42,13 @@
         <span asp-validation-for="ConductorId" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-success">Guardar</button>
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
     <a asp-action="Index" class="btn btn-secondary">Volver</a>
 </form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
 
 

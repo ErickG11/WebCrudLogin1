@@ -13,7 +13,8 @@ namespace WebCrudLogin.Models
         [StringLength(10)]
         public string Placa { get; set; } = string.Empty;
 
-        [Required, StringLength(50)]
+        [Required(ErrorMessage = "La marca es obligatoria.")]
+        [StringLength(50)]
         public string Marca { get; set; } = string.Empty;
 
         [Required, StringLength(50)]

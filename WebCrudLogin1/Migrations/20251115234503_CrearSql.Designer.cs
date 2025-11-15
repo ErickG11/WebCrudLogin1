@@ -11,7 +11,7 @@ using WebCrudLogin.Data;
 namespace WebCrudLogin.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251115230945_CrearSql")]
+    [Migration("20251115234503_CrearSql")]
     partial class CrearSql
     {
         /// <inheritdoc />
@@ -73,6 +73,11 @@ namespace WebCrudLogin.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Cedula")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -88,6 +93,9 @@ namespace WebCrudLogin.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Cedula")
+                        .IsUnique();
 
                     b.HasIndex("Username")
                         .IsUnique();

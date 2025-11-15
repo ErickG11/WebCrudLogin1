@@ -30,6 +30,7 @@ namespace WebCrudLogin.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Cedula = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
                 },
@@ -85,6 +86,12 @@ namespace WebCrudLogin.Migrations
                 name: "IX_Sectores_CampusId",
                 table: "Sectores",
                 column: "CampusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Cedula",
+                table: "Users",
+                column: "Cedula",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",

@@ -7,7 +7,8 @@ using WebCrudLogin.Models;
 
 namespace WebCrudLogin.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    // Admin y Conductores pueden gestionar Vehículos
+    [Authorize(Roles = "Admin,Conductor")]
     public class VehiculosController : Controller
     {
         private readonly AppDbContext _context;
@@ -20,11 +21,21 @@ namespace WebCrudLogin.Controllers
         // GET: Vehiculos
         public async Task<IActionResult> Index()
         {
-            var vehiculos = await _context.Vehiculos
+            IQueryable<Vehiculo> query = _context.Vehiculos
                 .Include(v => v.Conductor)
-                .OrderBy(v => v.Placa)
-                .ToListAsync();
+                .OrderBy(v => v.Placa);
 
+            // Si es Conductor (no Admin), solo ve sus propios vehículos
+            if (User.IsInRole("Conductor") && !User.IsInRole("Admin"))
+            {
+                var myId = await GetCurrentUserIdAsync();
+                if (myId != null)
+                {
+                    query = query.Where(v => v.ConductorId == myId.Value);
+                }
+            }
+
+            var vehiculos = await query.ToListAsync();
             return View(vehiculos);
         }
 
@@ -40,16 +51,27 @@ namespace WebCrudLogin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Vehiculo vehiculo)
         {
-            // VALIDACIÓN EN BACK-END DEL DATO SENSIBLE (PLACA)
-
-            // 1) Validaciones por data annotations (formato, required, etc.)
             if (!ModelState.IsValid)
             {
                 CargarConductoresDropDown(vehiculo.ConductorId);
                 return View(vehiculo);
             }
 
-            // 2) Validar en servidor que la placa NO esté repetida en la BD
+            // Si es Conductor (no Admin), se fuerza a que el vehículo sea suyo
+            if (User.IsInRole("Conductor") && !User.IsInRole("Admin"))
+            {
+                var myId = await GetCurrentUserIdAsync();
+                if (myId == null)
+                {
+                    ModelState.AddModelError(string.Empty, "No se pudo identificar al conductor actual.");
+                    CargarConductoresDropDown();
+                    return View(vehiculo);
+                }
+
+                vehiculo.ConductorId = myId.Value;
+            }
+
+            // Validar placa duplicada
             bool placaExiste = await _context.Vehiculos
                 .AnyAsync(v => v.Placa == vehiculo.Placa);
 
@@ -71,6 +93,14 @@ namespace WebCrudLogin.Controllers
             var vehiculo = await _context.Vehiculos.FindAsync(id);
             if (vehiculo == null) return NotFound();
 
+            // Conductor solo edita sus propios vehículos
+            if (User.IsInRole("Conductor") && !User.IsInRole("Admin"))
+            {
+                var myId = await GetCurrentUserIdAsync();
+                if (myId == null || vehiculo.ConductorId != myId.Value)
+                    return Forbid();
+            }
+
             CargarConductoresDropDown(vehiculo.ConductorId);
             return View(vehiculo);
         }
@@ -88,7 +118,17 @@ namespace WebCrudLogin.Controllers
                 return View(vehiculo);
             }
 
-            // Validar placa duplicada, excluyendo el propio vehículo
+            // Si es Conductor (no Admin), se asegura que quede asignado a él
+            if (User.IsInRole("Conductor") && !User.IsInRole("Admin"))
+            {
+                var myId = await GetCurrentUserIdAsync();
+                if (myId == null)
+                    return Forbid();
+
+                vehiculo.ConductorId = myId.Value;
+            }
+
+            // Validar placa duplicada excluyendo el propio vehículo
             bool placaExiste = await _context.Vehiculos
                 .AnyAsync(v => v.Placa == vehiculo.Placa && v.Id != vehiculo.Id);
 
@@ -112,6 +152,15 @@ namespace WebCrudLogin.Controllers
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (vehiculo == null) return NotFound();
+
+            // Conductor solo borra sus propios vehículos
+            if (User.IsInRole("Conductor") && !User.IsInRole("Admin"))
+            {
+                var myId = await GetCurrentUserIdAsync();
+                if (myId == null || vehiculo.ConductorId != myId.Value)
+                    return Forbid();
+            }
+
             return View(vehiculo);
         }
 
@@ -123,6 +172,13 @@ namespace WebCrudLogin.Controllers
             var vehiculo = await _context.Vehiculos.FindAsync(id);
             if (vehiculo != null)
             {
+                if (User.IsInRole("Conductor") && !User.IsInRole("Admin"))
+                {
+                    var myId = await GetCurrentUserIdAsync();
+                    if (myId == null || vehiculo.ConductorId != myId.Value)
+                        return Forbid();
+                }
+
                 _context.Vehiculos.Remove(vehiculo);
                 await _context.SaveChangesAsync();
             }
@@ -133,17 +189,53 @@ namespace WebCrudLogin.Controllers
         // ===== Helper para el dropdown de conductores =====
         private void CargarConductoresDropDown(int? conductorIdSeleccionado = null)
         {
-            // Aquí podrías filtrar por Role = "User" o "Conductor"
-            var conductores = _context.Users
+            IQueryable<User> query = _context.Users;
+
+            if (User.IsInRole("Admin"))
+            {
+                // Admin ve todos los conductores
+                query = query.Where(u => u.Role == "Conductor");
+            }
+            else if (User.IsInRole("Conductor"))
+            {
+                // Conductor solo se ve a sí mismo
+                var username = User.Identity?.Name;
+                if (!string.IsNullOrEmpty(username))
+                {
+                    query = query.Where(u => u.Username == username);
+                }
+                else
+                {
+                    query = query.Where(u => false);
+                }
+            }
+            else
+            {
+                query = query.Where(u => false);
+            }
+
+            var conductores = query
                 .OrderBy(u => u.Username)
                 .Select(u => new
                 {
                     u.Id,
-                    Nombre = u.Username + " (" + u.Role + ")"
+                    Nombre = u.Username
                 })
                 .ToList();
 
             ViewData["ConductorId"] = new SelectList(conductores, "Id", "Nombre", conductorIdSeleccionado);
+        }
+
+        private async Task<int?> GetCurrentUserIdAsync()
+        {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
+                return null;
+
+            var user = await _context.Users
+                .SingleOrDefaultAsync(u => u.Username == username);
+
+            return user?.Id;
         }
     }
 }

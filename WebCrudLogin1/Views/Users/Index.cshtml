@@ -1,0 +1,31 @@
+﻿@model IEnumerable<WebCrudLogin.Models.User>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<h2>Usuarios</h2>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Nuevo Usuario</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Cédula</th>
+            <th>Rol</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Username</td>
+                <td>@item.Cedula</td>
+                <td>@item.Role</td>
+            </tr>
+        }
+    </tbody>
+</table>

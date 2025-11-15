@@ -7,7 +7,8 @@ using WebCrudLogin.Models;
 
 namespace WebCrudLogin.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    // Admin y Conductores pueden gestionar Sectores
+    [Authorize(Roles = "Admin,Conductor")]
     public class SectoresController : Controller
     {
         private readonly AppDbContext _context;

@@ -36,6 +36,9 @@ namespace WebCrudLogin.Controllers
             var user = new User
             {
                 Username = model.Username,
+                // Si quieres, aquí podrías pedir cédula al registrarse normal, pero en este diseño
+                // el Admin crea usuarios con cédula. Así que usamos un valor temporal vacío.
+                Cedula = "0000000000",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                 Role = "User" // usuarios nuevos = rol User
             };
@@ -44,7 +47,9 @@ namespace WebCrudLogin.Controllers
             await _context.SaveChangesAsync();
 
             await SignIn(user.Username, user.Role);
-            return RedirectToAction("Index", "Products");
+
+            // Después de registrarse, ir al Home
+            return RedirectToAction("Index", "Home");
         }
 
         // ====== LOGIN ======
@@ -72,11 +77,11 @@ namespace WebCrudLogin.Controllers
             if (!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 return Redirect(model.ReturnUrl);
 
-            return RedirectToAction("Index, Sectores");
+            // Después de iniciar sesión, ir siempre al Home
+            return RedirectToAction("Index", "Home");
         }
 
         // ====== LOGOUT ======
-        // Para demo: soporta GET (enlace) y POST (form) para evitar errores de antiforgery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
