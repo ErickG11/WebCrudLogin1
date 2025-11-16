@@ -16,7 +16,7 @@ Esta aplicación permite gestionar:
 
 - ASP.NET Core MVC (.NET 8 / .NET 9 según proyecto)
 - Entity Framework Core
-- SQL Server
+- SQLite
 - Bootstrap 5
 - Autenticación por Cookies (`Microsoft.AspNetCore.Authentication.Cookies`)
 

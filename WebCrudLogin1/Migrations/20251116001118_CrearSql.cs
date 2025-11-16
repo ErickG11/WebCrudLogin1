@@ -14,9 +14,9 @@ namespace WebCrudLogin.Migrations
                 name: "Campuses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -27,12 +27,12 @@ namespace WebCrudLogin.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Username = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    Cedula = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Username = table.Column<string>(type: "TEXT", maxLength: 30, nullable: false),
+                    Cedula = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
+                    Role = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -43,10 +43,10 @@ namespace WebCrudLogin.Migrations
                 name: "Sectores",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    CampusId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    CampusId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,13 +63,13 @@ namespace WebCrudLogin.Migrations
                 name: "Vehiculos",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Placa = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    Marca = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Modelo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    NumeroAsientos = table.Column<int>(type: "int", nullable: false),
-                    ConductorId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Placa = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    Marca = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Modelo = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    NumeroAsientos = table.Column<int>(type: "INTEGER", nullable: false),
+                    ConductorId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
