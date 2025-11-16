@@ -1,0 +1,11 @@
+.vs
+.git
+bin
+obj
+*.user
+*.suo
+*.db
+*.db-wal
+*.db-shm
+README.md
+*.md

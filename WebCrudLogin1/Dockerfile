@@ -1,8 +1,8 @@
-Ôªø# ===== STAGE 1: build =====
+# ===== STAGE 1: build =====
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia todo el c√≥digo
+# Copia todo el cÛdigo
 COPY . .
 
 # Restaura paquetes
@@ -18,7 +18,7 @@ WORKDIR /app
 # Copia lo publicado
 COPY --from=build /app ./
 
-# Render detecta el puerto autom√°ticamente; usamos 8080
+# Render detecta el puerto autom·ticamente; usamos 8080
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 EXPOSE 8080
 
