@@ -1,0 +1,93 @@
+﻿@model WebCrudLogin.Models.BuscarRutaViewModel
+
+@{
+    ViewData["Title"] = "Buscar rutas";
+}
+
+<h2>Buscar rutas disponibles</h2>
+
+@if (TempData["JoinMessage"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["JoinMessage"]
+    </div>
+}
+
+<form asp-action="Buscar" method="post" class="mb-4">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Campus de salida</label>
+            <select asp-for="CampusOrigenId" class="form-select" asp-items="ViewBag.CampusOrigenId"></select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Sector de destino</label>
+            <select asp-for="SectorId" class="form-select" asp-items="ViewBag.SectorId"></select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+        </div>
+    </div>
+</form>
+
+@if (Model.Resultados != null && Model.Resultados.Any())
+{
+    <h3>Rutas encontradas</h3>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Conductor</th>
+                <th>Campus</th>
+                <th>Sector</th>
+                <th>Vehículo</th>
+                <th>Cupos</th>
+                <th>Hora salida</th>
+                <th>Precio (USD)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.Resultados)
+            {
+                var llena = r.CuposOcupados >= r.CuposTotales;
+                <tr>
+                    <td>@r.Conductor?.Username</td>
+                    <td>@r.CampusOrigen?.Nombre</td>
+                    <td>@r.Sector?.Nombre</td>
+                    <td>@r.Vehiculo?.Placa (@r.Vehiculo?.Modelo)</td>
+                    <td>@r.CuposOcupados / @r.CuposTotales</td>
+                    <td>@r.HoraSalida.ToString("dd/MM HH:mm")</td>
+                    <td>@r.Precio.ToString("0.00")</td>
+                    <td>
+                        @if (!llena)
+                        {
+                            <form asp-action="Unirse" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    Unirse
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Ruta llena</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (Context.Request.Method == "POST")
+{
+    <p>No se encontraron rutas con esos criterios.</p>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,233 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using WebCrudLogin.Data;
+using WebCrudLogin.Models;
+
+namespace WebCrudLogin.Controllers
+{
+    public class RutasController : Controller
+    {
+        private readonly AppDbContext _context;
+
+        public RutasController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // ========== 1) LISTA DE RUTAS DEL CONDUCTOR ==========
+
+        [Authorize(Roles = "Conductor,Admin")]
+        public async Task<IActionResult> Index()
+        {
+            var username = User.Identity!.Name!;
+            var conductor = await _context.Users
+                .SingleAsync(u => u.Username == username);
+
+            var rutas = await _context.Rutas
+                .Include(r => r.CampusOrigen)
+                .Include(r => r.Sector)
+                .Include(r => r.Vehiculo)
+                .Where(r => r.ConductorId == conductor.Id)
+                .OrderBy(r => r.HoraSalida)
+                .ToListAsync();
+
+            return View(rutas);
+        }
+
+        // ========== 2) CREAR RUTA (CONDUCTOR CREA RUTA + VEHÍCULO) ==========
+
+        [Authorize(Roles = "Conductor,Admin")]
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            await CargarDropdowns();
+            return View(new CrearRutaViewModel());
+        }
+
+        [Authorize(Roles = "Conductor,Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CrearRutaViewModel vm)
+        {
+            await CargarDropdowns();
+
+            var username = User.Identity!.Name!;
+            var conductor = await _context.Users
+                .SingleAsync(u => u.Username == username);
+
+            if (vm.CuposTotales > vm.NumeroAsientos)
+            {
+                ModelState.AddModelError(nameof(vm.CuposTotales),
+                    "Los cupos totales no pueden ser mayores que el número de asientos del vehículo.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            // Buscar si ya existe un vehículo con esa placa
+            var placaMayus = vm.Placa.Trim().ToUpper();
+            var vehiculo = await _context.Vehiculos
+                .SingleOrDefaultAsync(v => v.Placa == placaMayus);
+
+            if (vehiculo != null && vehiculo.ConductorId != conductor.Id)
+            {
+                ModelState.AddModelError(nameof(vm.Placa),
+                    "Esta placa ya está registrada por otro conductor.");
+                return View(vm);
+            }
+
+            if (vehiculo == null)
+            {
+                vehiculo = new Vehiculo
+                {
+                    Placa = placaMayus,
+                    Marca = vm.Marca,
+                    Modelo = vm.Modelo,
+                    NumeroAsientos = vm.NumeroAsientos,
+                    ConductorId = conductor.Id
+                };
+
+                _context.Vehiculos.Add(vehiculo);
+                await _context.SaveChangesAsync();
+            }
+
+            // Crear la ruta usando SectorId seleccionado
+            var ruta = new Ruta
+            {
+                ConductorId = conductor.Id,
+                VehiculoId = vehiculo.Id,
+                CampusOrigenId = vm.CampusOrigenId,
+                SectorId = vm.SectorId,
+                CuposTotales = vm.CuposTotales,
+                CuposOcupados = 0,
+                HoraSalida = vm.HoraSalida,
+                DistanciaKm = vm.DistanciaKm,
+                Precio = (decimal)vm.DistanciaKm * 0.90m
+            };
+
+            _context.Rutas.Add(ruta);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ========== 3) BUSCAR RUTAS (USUARIO NORMAL) ==========
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Buscar()
+        {
+            var vm = new BuscarRutaViewModel();
+            await CargarDropdowns();
+            return View(vm);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Buscar(BuscarRutaViewModel vm)
+        {
+            await CargarDropdowns();
+
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            // 1) Registrar la búsqueda en la BD
+            var username = User.Identity!.Name!;
+            var usuario = await _context.Users
+                .SingleAsync(u => u.Username == username);
+
+            var busqueda = new BusquedaRuta
+            {
+                UsuarioId = usuario.Id,
+                CampusOrigenId = vm.CampusOrigenId,
+                SectorId = vm.SectorId,
+                FechaBusqueda = DateTime.Now
+            };
+
+            _context.BusquedasRuta.Add(busqueda);
+            await _context.SaveChangesAsync();
+
+            // 2) Buscar rutas disponibles
+            var rutas = await _context.Rutas
+                .Include(r => r.Conductor)
+                .Include(r => r.Vehiculo)
+                .Include(r => r.CampusOrigen)
+                .Include(r => r.Sector)
+                .Where(r =>
+                    r.CampusOrigenId == vm.CampusOrigenId &&
+                    r.SectorId == vm.SectorId &&
+                    r.CuposOcupados < r.CuposTotales &&
+                    r.HoraSalida > DateTime.Now)
+                .OrderBy(r => r.HoraSalida)
+                .ToListAsync();
+
+            vm.Resultados = rutas;
+            return View(vm);
+        }
+
+        // ========== 4) UNIRSE A UNA RUTA ==========
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Unirse(int id)
+        {
+            var ruta = await _context.Rutas
+                .Include(r => r.Vehiculo)
+                .Include(r => r.CampusOrigen)
+                .Include(r => r.Sector)
+                .Include(r => r.Conductor)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (ruta == null) return NotFound();
+
+            if (ruta.CuposOcupados >= ruta.CuposTotales)
+            {
+                TempData["JoinMessage"] = "Esta ruta ya está llena.";
+            }
+            else
+            {
+                ruta.CuposOcupados++;
+                await _context.SaveChangesAsync();
+
+                TempData["JoinMessage"] =
+                    $"Te uniste a la ruta. Ahora hay {ruta.CuposOcupados} de {ruta.CuposTotales} puestos ocupados.";
+            }
+
+            return RedirectToAction(nameof(Buscar));
+        }
+
+        // ========== HELPERS ==========
+
+        private async Task CargarDropdowns()
+        {
+            var campuses = await _context.Campuses
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+
+            var sectores = await _context.Sectores
+                .Include(s => s.Campus)
+                .OrderBy(s => s.Campus!.Nombre)
+                .ThenBy(s => s.Nombre)
+                .ToListAsync();
+
+            ViewData["CampusOrigenId"] = new SelectList(campuses, "Id", "Nombre");
+            ViewData["SectorId"] = new SelectList(
+                sectores.Select(s => new
+                {
+                    s.Id,
+                    NombreCompleto = s.Campus!.Nombre + " - " + s.Nombre
+                }),
+                "Id",
+                "NombreCompleto"
+            );
+        }
+    }
+}

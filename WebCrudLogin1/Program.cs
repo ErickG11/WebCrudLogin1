@@ -1,13 +1,21 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using WebCrudLogin.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// MVC
 builder.Services.AddControllersWithViews();
 
+// DbContext usando SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+    // Ignorar warning de múltiples service providers de EF Core
+    options.ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
+});
 
 // Autenticación por cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -39,6 +47,17 @@ using (var scope = app.Services.CreateScope())
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123"),
             Role = "Admin"
         });
+        ctx.SaveChanges();
+    }
+
+    // Seed de campuses predefinidos
+    if (!ctx.Campuses.Any())
+    {
+        ctx.Campuses.AddRange(
+            new WebCrudLogin.Models.Campus { Nombre = "UDLA Park" },
+            new WebCrudLogin.Models.Campus { Nombre = "UDLA Granados" },
+            new WebCrudLogin.Models.Campus { Nombre = "UDLA Colón" }
+        );
         ctx.SaveChanges();
     }
 }

@@ -1,43 +1,101 @@
-﻿@{
+﻿@model WebCrudLogin.Models.DashboardViewModel
+
+@{
     ViewData["Title"] = "Inicio";
 }
 
 <div class="mt-4">
-    <h1>CampusRide Admin</h1>
-    <p>Panel de administración para gestionar campus, sectores, vehículos y usuarios de CampusRide.</p>
+    <h1>CampusRide</h1>
 
-    @if (User.Identity?.IsAuthenticated ?? false)
+    @if (!(User.Identity?.IsAuthenticated ?? false))
     {
-        <div class="mt-3">
-            <h4>Gestión rápida</h4>
-            <p>
-                @* Admin y Conductor: pueden gestionar Sectores y Vehículos *@
-                @if (User.IsInRole("Admin") || User.IsInRole("Conductor"))
-                {
-                    <a class="btn btn-primary me-2" asp-controller="Sectores" asp-action="Index">
-                        Gestionar Sectores
-                    </a>
-
-                    <a class="btn btn-secondary me-2" asp-controller="Vehiculos" asp-action="Index">
-                        Gestionar Vehículos
-                    </a>
-                }
-
-                @* Solo Admin: gestionar usuarios *@
-                @if (User.IsInRole("Admin"))
-                {
-                    <a class="btn btn-outline-dark" asp-controller="Users" asp-action="Index">
-                        Gestionar Usuarios
-                    </a>
-                }
-            </p>
-        </div>
+        <p>Para usar CampusRide inicia sesión.</p>
+        <p>
+            <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+        </p>
     }
     else
     {
-        <p class="mt-3">
-            <a class="btn btn-primary" asp-controller="Account" asp-action="Login">
-                Iniciar sesión
+        <p>Hola, @Model.NombreUsuario</p>
+
+        @* ===== PANEL ADMIN (puede gestionar usuarios, rutas y sectores) ===== *@
+        @if (Model.EsAdmin)
+        {
+            <h3>Panel de administración</h3>
+            <p>
+                <a class="btn btn-outline-primary me-2"
+                   asp-controller="Users" asp-action="Index">
+                    Usuarios
+                </a>
+
+                <a class="btn btn-outline-primary me-2"
+                   asp-controller="Rutas" asp-action="Index">
+                    Rutas
+                </a>
+
+                <a class="btn btn-outline-primary me-2"
+                   asp-controller="Sectores" asp-action="Index">
+                    Sectores
+                </a>
+            </p>
+        }
+
+        @* ===== PANEL CONDUCTOR ===== *@
+        @if (Model.EsConductor)
+        {
+            <h3>Panel de conductor</h3>
+            <p>
+                <a class="btn btn-success me-2"
+                   asp-controller="Rutas" asp-action="Index">
+                    Mis rutas
+                </a>
+
+                <a class="btn btn-outline-secondary"
+                   asp-controller="Rutas" asp-action="Create">
+                    Crear nueva ruta
+                </a>
+            </p>
+
+            <h3 class="mt-4">Rutas sugeridas (más solicitadas este año)</h3>
+
+            @if (Model.RutasSugeridas != null && Model.RutasSugeridas.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Campus de salida</th>
+                            <th>Sector destino</th>
+                            <th>Día de la semana</th>
+                            <th>Hora más frecuente</th>
+                            <th>Total de búsquedas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.RutasSugeridas)
+                        {
+                            <tr>
+                                <td>@s.CampusOrigenNombre</td>
+                                <td>@s.SectorDestinoNombre</td>
+                                <td>@s.DiaSemana</td>
+                                <td>@s.HoraSalidaSugerida.ToString(@"hh\:mm")</td>
+                                <td>@s.TotalBusquedas</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No hay suficientes datos de búsquedas todavía para sugerir rutas.</p>
+            }
+        }
+
+        @* ===== BUSCADOR PARA CUALQUIER USUARIO AUTENTICADO ===== *@
+        <h3 class="mt-4">Buscar rutas como pasajero</h3>
+        <p>
+            <a class="btn btn-primary"
+               asp-controller="Rutas" asp-action="Buscar">
+                Buscar rutas
             </a>
         </p>
     }

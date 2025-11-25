@@ -1,0 +1,39 @@
+﻿@model IEnumerable<WebCrudLogin.Models.Ruta>
+
+@{
+    ViewData["Title"] = "Mis rutas";
+}
+
+<h2>Mis rutas</h2>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Crear nueva ruta</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Campus origen</th>
+            <th>Sector destino</th>
+            <th>Vehículo</th>
+            <th>Cupos</th>
+            <th>Hora salida</th>
+            <th>Distancia (km)</th>
+            <th>Precio (USD)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.CampusOrigen?.Nombre</td>
+                <td>@r.Sector?.Nombre</td>
+                <td>@r.Vehiculo?.Placa (@r.Vehiculo?.Modelo)</td>
+                <td>@r.CuposOcupados / @r.CuposTotales</td>
+                <td>@r.HoraSalida.ToString("dd/MM HH:mm")</td>
+                <td>@r.DistanciaKm</td>
+                <td>@r.Precio.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,81 @@
+﻿@model WebCrudLogin.Models.CrearRutaViewModel
+
+@{
+    ViewData["Title"] = "Crear Ruta";
+}
+
+<h2>Crear Ruta</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <h4>Datos de la ruta</h4>
+    <hr />
+
+    <div class="mb-3">
+        <label class="form-label">Campus de salida</label>
+        <select asp-for="CampusOrigenId" class="form-select" asp-items="ViewBag.CampusOrigenId"></select>
+        <span asp-validation-for="CampusOrigenId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Sector de destino</label>
+        <select asp-for="SectorId" class="form-select" asp-items="ViewBag.SectorId"></select>
+        <span asp-validation-for="SectorId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CuposTotales" class="form-label"></label>
+        <input asp-for="CuposTotales" class="form-control" />
+        <span asp-validation-for="CuposTotales" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="HoraSalida" class="form-label"></label>
+        <input asp-for="HoraSalida" type="datetime-local" class="form-control" />
+        <span asp-validation-for="HoraSalida" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DistanciaKm" class="form-label"></label>
+        <input asp-for="DistanciaKm" class="form-control" />
+        <span class="form-text">Se usará para calcular el precio (0.90 USD por km).</span>
+        <span asp-validation-for="DistanciaKm" class="text-danger"></span>
+    </div>
+
+    <h4 class="mt-4">Datos del vehículo</h4>
+    <hr />
+
+    <div class="mb-3">
+        <label asp-for="Placa" class="form-label"></label>
+        <input asp-for="Placa" class="form-control" />
+        <span asp-validation-for="Placa" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Marca" class="form-label"></label>
+        <input asp-for="Marca" class="form-control" />
+        <span asp-validation-for="Marca" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Modelo" class="form-label"></label>
+        <input asp-for="Modelo" class="form-control" />
+        <span asp-validation-for="Modelo" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NumeroAsientos" class="form-label"></label>
+        <input asp-for="NumeroAsientos" class="form-control" />
+        <span asp-validation-for="NumeroAsientos" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
