@@ -32,10 +32,28 @@
         <span asp-validation-for="CuposTotales" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="HoraSalida" class="form-label"></label>
-        <input asp-for="HoraSalida" type="datetime-local" class="form-control" />
-        <span asp-validation-for="HoraSalida" class="text-danger"></span>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label asp-for="DiaSemana" class="form-label">Día de la semana</label>
+            <select asp-for="DiaSemana" class="form-select">
+                <option value="Monday">Lunes</option>
+                <option value="Tuesday">Martes</option>
+                <option value="Wednesday">Miércoles</option>
+                <option value="Thursday">Jueves</option>
+                <option value="Friday">Viernes</option>
+                <option value="Saturday">Sábado</option>
+            </select>
+            <span asp-validation-for="DiaSemana" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="HoraDelDia" class="form-label">Hora de salida</label>
+            <select asp-for="HoraDelDia" class="form-select" asp-items="ViewBag.HoraDelDia"></select>
+            <span asp-validation-for="HoraDelDia" class="text-danger"></span>
+            <div class="form-text">
+                Solo se permiten horarios entre 08:00 y 23:00.
+            </div>
+        </div>
     </div>
 
     <div class="mb-3">

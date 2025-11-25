@@ -19,15 +19,18 @@ namespace WebCrudLogin.Models
         public int CuposTotales { get; set; }
 
         [Required]
-        [DataType(DataType.DateTime)]
+        [Display(Name = "Día de la semana")]
+        public DayOfWeek DiaSemana { get; set; } = DayOfWeek.Monday;
+
+        [Required]
         [Display(Name = "Hora de salida")]
-        public DateTime HoraSalida { get; set; } = DateTime.Now.AddHours(1);
+        public TimeSpan HoraDelDia { get; set; } = new TimeSpan(8, 0, 0);
 
         [Range(0.1, 500, ErrorMessage = "La distancia debe ser mayor a 0.")]
         [Display(Name = "Distancia aproximada (km)")]
         public double DistanciaKm { get; set; }
 
-        // ===== Datos del vehículo (creado/reutilizado automáticamente) =====
+        // ===== Datos del vehículo =====
 
         [Required(ErrorMessage = "La placa es obligatoria.")]
         [RegularExpression("^[A-Z]{3}-?[0-9]{3,4}$",

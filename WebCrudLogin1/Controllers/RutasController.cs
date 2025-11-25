@@ -57,10 +57,25 @@ namespace WebCrudLogin.Controllers
             var conductor = await _context.Users
                 .SingleAsync(u => u.Username == username);
 
+            // Validación: cupos no pueden ser mayores que asientos
             if (vm.CuposTotales > vm.NumeroAsientos)
             {
                 ModelState.AddModelError(nameof(vm.CuposTotales),
                     "Los cupos totales no pueden ser mayores que el número de asientos del vehículo.");
+            }
+
+            // Validación: sólo días de lunes a sábado
+            if (vm.DiaSemana == DayOfWeek.Sunday)
+            {
+                ModelState.AddModelError(nameof(vm.DiaSemana),
+                    "Solo se permiten rutas de lunes a sábado.");
+            }
+
+            // Validación: hora entre 08:00 y 23:00
+            if (vm.HoraDelDia < new TimeSpan(8, 0, 0) || vm.HoraDelDia > new TimeSpan(23, 0, 0))
+            {
+                ModelState.AddModelError(nameof(vm.HoraDelDia),
+                    "La hora debe estar entre las 08:00 y las 23:00.");
             }
 
             if (!ModelState.IsValid)
@@ -95,7 +110,10 @@ namespace WebCrudLogin.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Crear la ruta usando SectorId seleccionado
+            // Calcular la próxima fecha que cae en ese día de la semana
+            var proximaFecha = ObtenerProximaFecha(vm.DiaSemana);
+            var horaSalida = proximaFecha.Date + vm.HoraDelDia;
+
             var ruta = new Ruta
             {
                 ConductorId = conductor.Id,
@@ -104,7 +122,7 @@ namespace WebCrudLogin.Controllers
                 SectorId = vm.SectorId,
                 CuposTotales = vm.CuposTotales,
                 CuposOcupados = 0,
-                HoraSalida = vm.HoraSalida,
+                HoraSalida = horaSalida,
                 DistanciaKm = vm.DistanciaKm,
                 Precio = (decimal)vm.DistanciaKm * 0.90m
             };
@@ -138,7 +156,7 @@ namespace WebCrudLogin.Controllers
                 return View(vm);
             }
 
-            // 1) Registrar la búsqueda en la BD
+            // Registrar la búsqueda en la BD
             var username = User.Identity!.Name!;
             var usuario = await _context.Users
                 .SingleAsync(u => u.Username == username);
@@ -154,7 +172,7 @@ namespace WebCrudLogin.Controllers
             _context.BusquedasRuta.Add(busqueda);
             await _context.SaveChangesAsync();
 
-            // 2) Buscar rutas disponibles
+            // Buscar rutas disponibles
             var rutas = await _context.Rutas
                 .Include(r => r.Conductor)
                 .Include(r => r.Vehiculo)
@@ -228,6 +246,29 @@ namespace WebCrudLogin.Controllers
                 "Id",
                 "NombreCompleto"
             );
+
+            // Dropdown de horas: de 08:00 a 23:00
+            var horas = Enumerable.Range(8, 16)
+                .Select(h => new
+                {
+                    Valor = $"{h:00}:00",
+                    Texto = $"{h:00}:00"
+                })
+                .ToList();
+
+            ViewData["HoraDelDia"] = new SelectList(horas, "Valor", "Texto");
+        }
+
+        private DateTime ObtenerProximaFecha(DayOfWeek dia)
+        {
+            var hoy = DateTime.Today;
+            int diasDiferencia = ((int)dia - (int)hoy.DayOfWeek + 7) % 7;
+            if (diasDiferencia == 0)
+            {
+                // Si es el mismo día, lo mandamos a la próxima semana
+                diasDiferencia = 7;
+            }
+            return hoy.AddDays(diasDiferencia);
         }
     }
 }
