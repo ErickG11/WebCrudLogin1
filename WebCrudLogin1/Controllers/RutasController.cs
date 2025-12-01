@@ -16,7 +16,7 @@ namespace WebCrudLogin.Controllers
             _context = context;
         }
 
-        // ========== 1) LISTA DE RUTAS DEL CONDUCTOR ==========
+        // ========== LISTA DE RUTAS DEL CONDUCTOR ==========
 
         [Authorize(Roles = "Conductor,Admin")]
         public async Task<IActionResult> Index()
@@ -36,7 +36,7 @@ namespace WebCrudLogin.Controllers
             return View(rutas);
         }
 
-        // ========== 2) CREAR RUTA (CONDUCTOR CREA RUTA + VEHÍCULO) ==========
+        // ========== CREAR RUTA ==========
 
         [Authorize(Roles = "Conductor,Admin")]
         [HttpGet]
@@ -133,7 +133,128 @@ namespace WebCrudLogin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ========== 3) BUSCAR RUTAS (USUARIO NORMAL) ==========
+        // ========== 3) EDITAR RUTA ==========
+
+        [Authorize(Roles = "Conductor,Admin")]
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var ruta = await _context.Rutas
+                .Include(r => r.CampusOrigen)
+                .Include(r => r.Sector)
+                .Include(r => r.Vehiculo)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (ruta == null) return NotFound();
+
+            // Solo el dueño de la ruta o Admin
+            if (!User.IsInRole("Admin"))
+            {
+                var username = User.Identity!.Name!;
+                var conductor = await _context.Users.SingleAsync(u => u.Username == username);
+                if (ruta.ConductorId != conductor.Id) return Forbid();
+            }
+
+            await CargarDropdowns();
+            return View(ruta);
+        }
+
+        [Authorize(Roles = "Conductor,Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Ruta ruta)
+        {
+            if (id != ruta.Id) return BadRequest();
+
+            await CargarDropdowns();
+
+            var rutaDb = await _context.Rutas
+                .Include(r => r.Vehiculo)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (rutaDb == null) return NotFound();
+
+            // Validar dueño si no es Admin
+            if (!User.IsInRole("Admin"))
+            {
+                var username = User.Identity!.Name!;
+                var conductor = await _context.Users.SingleAsync(u => u.Username == username);
+                if (rutaDb.ConductorId != conductor.Id) return Forbid();
+            }
+
+            // Validación: no reducir cupos por debajo de los ya ocupados
+            if (ruta.CuposTotales < rutaDb.CuposOcupados)
+            {
+                ModelState.AddModelError(nameof(ruta.CuposTotales),
+                    "No puedes poner cupos totales menores a los cupos ya ocupados.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(ruta);
+            }
+
+            // Actualizar campos editables
+            rutaDb.CampusOrigenId = ruta.CampusOrigenId;
+            rutaDb.SectorId = ruta.SectorId;
+            rutaDb.CuposTotales = ruta.CuposTotales;
+            rutaDb.HoraSalida = ruta.HoraSalida;
+            rutaDb.DistanciaKm = ruta.DistanciaKm;
+            rutaDb.Precio = (decimal)ruta.DistanciaKm * 0.90m; // recalcular precio
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ========== 4) ELIMINAR RUTA ==========
+
+        [Authorize(Roles = "Conductor,Admin")]
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var ruta = await _context.Rutas
+                .Include(r => r.CampusOrigen)
+                .Include(r => r.Sector)
+                .Include(r => r.Vehiculo)
+                .Include(r => r.Conductor)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (ruta == null) return NotFound();
+
+            // Solo el dueño o Admin
+            if (!User.IsInRole("Admin"))
+            {
+                var username = User.Identity!.Name!;
+                var conductor = await _context.Users.SingleAsync(u => u.Username == username);
+                if (ruta.ConductorId != conductor.Id) return Forbid();
+            }
+
+            return View(ruta);
+        }
+
+        [Authorize(Roles = "Conductor,Admin")]
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var ruta = await _context.Rutas.FindAsync(id);
+            if (ruta == null) return NotFound();
+
+            if (!User.IsInRole("Admin"))
+            {
+                var username = User.Identity!.Name!;
+                var conductor = await _context.Users.SingleAsync(u => u.Username == username);
+                if (ruta.ConductorId != conductor.Id) return Forbid();
+            }
+
+            _context.Rutas.Remove(ruta);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ========== 5) BUSCAR RUTAS (USUARIO NORMAL) ==========
 
         [Authorize]
         [HttpGet]
@@ -172,8 +293,18 @@ namespace WebCrudLogin.Controllers
             _context.BusquedasRuta.Add(busqueda);
             await _context.SaveChangesAsync();
 
-            // Buscar rutas disponibles
-            var rutas = await _context.Rutas
+            // Calcular rango horario ± 2 horas
+            var horaBuscada = vm.HoraDelDia;
+            var desde = horaBuscada - TimeSpan.FromHours(2);
+            var hasta = horaBuscada + TimeSpan.FromHours(2);
+
+            if (desde < TimeSpan.Zero) desde = TimeSpan.Zero;
+            if (hasta > new TimeSpan(23, 59, 59)) hasta = new TimeSpan(23, 59, 59);
+
+            var ahora = DateTime.Now;
+
+            // 1) Filtro que SÍ puede ir a la BD
+            var rutasDb = await _context.Rutas
                 .Include(r => r.Conductor)
                 .Include(r => r.Vehiculo)
                 .Include(r => r.CampusOrigen)
@@ -182,15 +313,24 @@ namespace WebCrudLogin.Controllers
                     r.CampusOrigenId == vm.CampusOrigenId &&
                     r.SectorId == vm.SectorId &&
                     r.CuposOcupados < r.CuposTotales &&
-                    r.HoraSalida > DateTime.Now)
-                .OrderBy(r => r.HoraSalida)
+                    r.HoraSalida > ahora)
                 .ToListAsync();
+
+            // 2) Filtro en memoria por día de la semana y rango horario
+            var rutas = rutasDb
+                .Where(r =>
+                    r.HoraSalida.DayOfWeek == vm.DiaSemana &&
+                    r.HoraSalida.TimeOfDay >= desde &&
+                    r.HoraSalida.TimeOfDay <= hasta)
+                .OrderBy(r => r.HoraSalida)
+                .ToList();
 
             vm.Resultados = rutas;
             return View(vm);
         }
 
-        // ========== 4) UNIRSE A UNA RUTA ==========
+
+        // ========== 6) UNIRSE A UNA RUTA ==========
 
         [Authorize]
         [HttpPost]

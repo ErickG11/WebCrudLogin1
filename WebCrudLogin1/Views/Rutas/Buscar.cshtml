@@ -1,10 +1,20 @@
 ﻿@model WebCrudLogin.Models.BuscarRutaViewModel
+@using System
 
 @{
-    ViewData["Title"] = "Buscar rutas";
+    ViewData["Title"] = "Buscar ruta";
+    var diasSemana = new[]
+    {
+        new { Valor = DayOfWeek.Monday,    Texto = "Lunes" },
+        new { Valor = DayOfWeek.Tuesday,   Texto = "Martes" },
+        new { Valor = DayOfWeek.Wednesday, Texto = "Miércoles" },
+        new { Valor = DayOfWeek.Thursday,  Texto = "Jueves" },
+        new { Valor = DayOfWeek.Friday,    Texto = "Viernes" },
+        new { Valor = DayOfWeek.Saturday,  Texto = "Sábado" }
+    };
 }
 
-<h2>Buscar rutas disponibles</h2>
+<h2>Buscar ruta</h2>
 
 @if (TempData["JoinMessage"] != null)
 {
@@ -18,74 +28,90 @@
 
     <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="row g-3">
-        <div class="col-md-4">
-            <label class="form-label">Campus de salida</label>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label asp-for="CampusOrigenId" class="form-label"></label>
             <select asp-for="CampusOrigenId" class="form-select" asp-items="ViewBag.CampusOrigenId"></select>
+            <span asp-validation-for="CampusOrigenId" class="text-danger"></span>
         </div>
-        <div class="col-md-4">
-            <label class="form-label">Sector de destino</label>
+
+        <div class="col-md-3">
+            <label asp-for="SectorId" class="form-label"></label>
             <select asp-for="SectorId" class="form-select" asp-items="ViewBag.SectorId"></select>
+            <span asp-validation-for="SectorId" class="text-danger"></span>
         </div>
-        <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+
+        <div class="col-md-3">
+            <label asp-for="DiaSemana" class="form-label"></label>
+            <select asp-for="DiaSemana" class="form-select">
+                @foreach (var d in diasSemana)
+                {
+                    <option value="@((int)d.Valor)">@d.Texto</option>
+                }
+            </select>
+            <span asp-validation-for="DiaSemana" class="text-danger"></span>
+        </div>
+
+
+        <div class="col-md-3">
+            <label asp-for="HoraDelDia" class="form-label"></label>
+            <select asp-for="HoraDelDia" class="form-select" asp-items="ViewBag.HoraDelDia"></select>
+            <span asp-validation-for="HoraDelDia" class="text-danger"></span>
+            <small class="form-text text-muted">
+                Se buscarán rutas ± 2 horas alrededor de esta hora.
+            </small>
         </div>
     </div>
+
+    <button type="submit" class="btn btn-primary">Buscar</button>
 </form>
 
 @if (Model.Resultados != null && Model.Resultados.Any())
 {
     <h3>Rutas encontradas</h3>
-
     <table class="table table-striped">
         <thead>
             <tr>
+                <th>Campus origen</th>
+                <th>Sector destino</th>
                 <th>Conductor</th>
-                <th>Campus</th>
-                <th>Sector</th>
                 <th>Vehículo</th>
                 <th>Cupos</th>
                 <th>Hora salida</th>
+                <th>Distancia (km)</th>
                 <th>Precio (USD)</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var r in Model.Resultados)
-            {
-                var llena = r.CuposOcupados >= r.CuposTotales;
-                <tr>
-                    <td>@r.Conductor?.Username</td>
-                    <td>@r.CampusOrigen?.Nombre</td>
-                    <td>@r.Sector?.Nombre</td>
-                    <td>@r.Vehiculo?.Placa (@r.Vehiculo?.Modelo)</td>
-                    <td>@r.CuposOcupados / @r.CuposTotales</td>
-                    <td>@r.HoraSalida.ToString("dd/MM HH:mm")</td>
-                    <td>@r.Precio.ToString("0.00")</td>
-                    <td>
-                        @if (!llena)
-                        {
-                            <form asp-action="Unirse" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="btn btn-sm btn-success">
-                                    Unirse
-                                </button>
-                            </form>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Ruta llena</span>
-                        }
-                    </td>
-                </tr>
-            }
+        @foreach (var r in Model.Resultados)
+        {
+            <tr>
+                <td>@r.CampusOrigen?.Nombre</td>
+                <td>@r.Sector?.Nombre</td>
+                <td>@r.Conductor?.Username</td>
+                <td>@r.Vehiculo?.Placa (@r.Vehiculo?.Modelo)</td>
+                <td>@r.CuposOcupados / @r.CuposTotales</td>
+                <td>@r.HoraSalida.ToString("dd/MM HH:mm")</td>
+                <td>@r.DistanciaKm</td>
+                <td>@r.Precio.ToString("0.00")</td>
+                <td>
+                    <form asp-action="Unirse" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@r.Id" />
+                        <button type="submit" class="btn btn-sm btn-success">
+                            Unirse
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
         </tbody>
     </table>
 }
-else if (Context.Request.Method == "POST")
+else
 {
-    <p>No se encontraron rutas con esos criterios.</p>
+    <p>No hay resultados todavía. Realiza una búsqueda.</p>
 }
 
 @section Scripts {

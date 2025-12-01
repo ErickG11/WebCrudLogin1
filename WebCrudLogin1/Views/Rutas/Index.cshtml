@@ -20,6 +20,7 @@
             <th>Hora salida</th>
             <th>Distancia (km)</th>
             <th>Precio (USD)</th>
+            <th></th> @* Acciones *@
         </tr>
     </thead>
     <tbody>
@@ -33,6 +34,19 @@
                 <td>@r.HoraSalida.ToString("dd/MM HH:mm")</td>
                 <td>@r.DistanciaKm</td>
                 <td>@r.Precio.ToString("0.00")</td>
+                <td>
+                    <a asp-action="Edit"
+                       asp-route-id="@r.Id"
+                       class="btn btn-sm btn-warning">
+                        Editar
+                    </a>
+
+                    <a asp-action="Delete"
+                       asp-route-id="@r.Id"
+                       class="btn btn-sm btn-danger ms-1">
+                        Eliminar
+                    </a>
+                </td>
             </tr>
         }
     </tbody>

@@ -1,0 +1,78 @@
+﻿@model WebCrudLogin.Models.Ruta
+
+@{
+    ViewData["Title"] = "Editar ruta";
+}
+
+<h2>Editar ruta</h2>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    @* Id oculto *@
+    <input type="hidden" asp-for="Id" />
+
+    <h4>Datos de la ruta</h4>
+    <hr />
+
+    <div class="mb-3">
+        <label class="form-label">Campus de salida</label>
+        <select asp-for="CampusOrigenId" class="form-select" asp-items="ViewBag.CampusOrigenId"></select>
+        <span asp-validation-for="CampusOrigenId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Sector de destino</label>
+        <select asp-for="SectorId" class="form-select" asp-items="ViewBag.SectorId"></select>
+        <span asp-validation-for="SectorId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CuposTotales" class="form-label"></label>
+        <input asp-for="CuposTotales" class="form-control" />
+        <span asp-validation-for="CuposTotales" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Cupos ocupados (solo lectura)</label>
+        <input class="form-control" value="@Model.CuposOcupados / @Model.CuposTotales" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="HoraSalida" class="form-label"></label>
+        <input asp-for="HoraSalida" type="datetime-local" class="form-control" />
+        <span asp-validation-for="HoraSalida" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DistanciaKm" class="form-label"></label>
+        <input asp-for="DistanciaKm" class="form-control" />
+        <span class="form-text">Se usa para calcular el precio (0.90 USD por km).</span>
+        <span asp-validation-for="DistanciaKm" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Precio" class="form-label"></label>
+        <input asp-for="Precio" class="form-control" readonly />
+        <span class="form-text">El precio normalmente se calcula a partir de la distancia.</span>
+    </div>
+
+    <h4 class="mt-4">Vehículo (solo lectura)</h4>
+    <hr />
+
+    <div class="mb-3">
+        <label class="form-label">Vehículo</label>
+        <input class="form-control"
+               value="@($"{Model.Vehiculo?.Placa} - {Model.Vehiculo?.Marca} {Model.Vehiculo?.Modelo}")"
+               readonly />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

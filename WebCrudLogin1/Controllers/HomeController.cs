@@ -41,7 +41,7 @@ namespace WebCrudLogin.Controllers
         {
             var anioActual = DateTime.Now.Year;
 
-            // Traemos TODAS las búsquedas del año actual,
+            // Traemos Todas las búsquedas del año actual,
             // incluyendo Campus y Sector (ya NO usamos SectorDestinoNombre)
             var busquedas = await _context.BusquedasRuta
                 .Include(b => b.CampusOrigen)

@@ -1,0 +1,79 @@
+﻿@model WebCrudLogin.Models.Ruta
+
+@{
+    ViewData["Title"] = "Eliminar ruta";
+}
+
+<h2>Eliminar ruta</h2>
+
+<h3>¿Seguro que deseas eliminar esta ruta?</h3>
+
+<div>
+    <h4>Detalle de la ruta</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">
+            Campus origen
+        </dt>
+        <dd class="col-sm-9">
+            @Model.CampusOrigen?.Nombre
+        </dd>
+
+        <dt class="col-sm-3">
+            Sector destino
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Sector?.Nombre
+        </dd>
+
+        <dt class="col-sm-3">
+            Vehículo
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Vehiculo?.Placa (@Model.Vehiculo?.Modelo)
+        </dd>
+
+        <dt class="col-sm-3">
+            Conductor
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Conductor?.Username
+        </dd>
+
+        <dt class="col-sm-3">
+            Cupos
+        </dt>
+        <dd class="col-sm-9">
+            @Model.CuposOcupados / @Model.CuposTotales
+        </dd>
+
+        <dt class="col-sm-3">
+            Hora de salida
+        </dt>
+        <dd class="col-sm-9">
+            @Model.HoraSalida.ToString("dd/MM/yyyy HH:mm")
+        </dd>
+
+        <dt class="col-sm-3">
+            Distancia (km)
+        </dt>
+        <dd class="col-sm-9">
+            @Model.DistanciaKm
+        </dd>
+
+        <dt class="col-sm-3">
+            Precio (USD)
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Precio.ToString("0.00")
+        </dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
