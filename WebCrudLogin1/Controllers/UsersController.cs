@@ -117,7 +117,9 @@ namespace WebCrudLogin.Controllers
                 return false;
 
             // Código de provincia (01-24 o 30)
-            int provincia = int.Parse(cedula.Substring(0, 2));
+            if (!int.TryParse(cedula.Substring(0, 2), out int provincia))
+                return false;
+
             if (provincia < 1 || (provincia > 24 && provincia != 30))
                 return false;
 

@@ -1,49 +1,17 @@
-﻿<!DOCTYPE html>
+﻿﻿
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - WebCrudLogin</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    <style>
-        header.app-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 16px;
-            gap: 12px;
-            flex-wrap: wrap;
-            border-bottom: 1px solid #eee;
-            background: #fff;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .brand {
-            font-weight: 700;
-        }
-
-        .nav-grid {
-            display: grid;
-            grid-auto-flow: column;
-            gap: 8px;
-        }
-
-        
-        @@media (max-width: 576px) {
-            .nav-grid
-
-        {
-            grid-auto-flow: row;
-            width: 100%;
-        }
-
-        }
-    </style>
 
     @RenderSection("Styles", required: false)
 </head>
@@ -51,34 +19,42 @@
     @{
         var isAuthPage = (ViewContext.RouteData.Values["Controller"]?.ToString() == "Account");
     }
+
     @if (!isAuthPage)
     {
+        <div class="ambient ambient-1"></div>
+        <div class="ambient ambient-2"></div>
         <header class="app-header">
-            <div class="brand">WebCrudLogin</div>
+            <div class="brand">
+                <div class="brand-mark">CR</div>
+                <div>
+                    <div class="brand-name">CampusRide</div>
+                    <small class="brand-tag">Movilidad inteligente</small>
+                </div>
+            </div>
             <nav class="nav-grid">
-                <a class="btn btn-link" asp-controller="Home" asp-action="Index">Home</a>
-                <a class="btn btn-link" asp-controller="Products" asp-action="Index">Products</a>
+                <a class="nav-chip" asp-controller="Home" asp-action="Index">Inicio</a>
+                <a class="nav-chip" asp-controller="Products" asp-action="Index">Products</a>
 
                 @if (User?.Identity?.IsAuthenticated ?? false)
                 {
-                    <span class="align-self-center">Hola, @User.Identity!.Name</span>
-                    <!-- Enlace GET a Logout para evitar errores de antiforgery en la demo -->
-                    <a class="btn btn-outline-danger btn-sm"
+                    <span class="user-chip">Hola, @User.Identity!.Name</span>
+                    <a class="nav-chip nav-chip--danger"
                        asp-controller="Account" asp-action="Logout">
                         Salir
                     </a>
                 }
                 else
                 {
-                    <a class="btn btn-link" asp-controller="Account" asp-action="Login">Login</a>
-                    <a class="btn btn-link" asp-controller="Account" asp-action="Register">Registro</a>
+                    <a class="nav-chip" asp-controller="Account" asp-action="Login">Login</a>
+                    <a class="nav-chip nav-chip--primary" asp-controller="Account" asp-action="Register">Registro</a>
                 }
             </nav>
         </header>
     }
 
-    <div class="container py-4">
-        <main role="main" class="pb-3">
+    <div class="page-shell">
+        <main role="main" class="page-surface">
             @RenderBody()
         </main>
     </div>

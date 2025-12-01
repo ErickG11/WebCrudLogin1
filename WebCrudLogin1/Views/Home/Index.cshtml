@@ -4,63 +4,102 @@
     ViewData["Title"] = "Inicio";
 }
 
-<div class="mt-4">
-    <h1>CampusRide</h1>
-
-    @if (!(User.Identity?.IsAuthenticated ?? false))
-    {
-        <p>Para usar CampusRide inicia sesión.</p>
-        <p>
-            <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+<div class="page-hero">
+    <div class="hero-content">
+        <div class="eyebrow">CampusRide • Movilidad colaborativa</div>
+        <h1 class="hero-title">Gestiona rutas, vehículos y usuarios con estilo</h1>
+        <p class="hero-subtitle">
+            Un panel elegante y centrado en la acción para crear, monitorear y descubrir rutas compartidas.
+            Todo en un entorno seguro con autenticación.
         </p>
-    }
-    else
-    {
-        <p>Hola, @Model.NombreUsuario</p>
 
-        @* ===== PANEL ADMIN (puede gestionar usuarios, rutas y sectores) ===== *@
-        @if (Model.EsAdmin)
-        {
-            <h3>Panel de administración</h3>
-            <p>
-                <a class="btn btn-outline-primary me-2"
-                   asp-controller="Users" asp-action="Index">
-                    Usuarios
-                </a>
-
-                <a class="btn btn-outline-primary me-2"
-                   asp-controller="Rutas" asp-action="Index">
-                    Rutas
-                </a>
-
-                <a class="btn btn-outline-primary me-2"
-                   asp-controller="Sectores" asp-action="Index">
-                    Sectores
-                </a>
-            </p>
-        }
-
-        @* ===== PANEL CONDUCTOR ===== *@
-        @if (Model.EsConductor)
-        {
-            <h3>Panel de conductor</h3>
-            <p>
-                <a class="btn btn-success me-2"
-                   asp-controller="Rutas" asp-action="Index">
-                    Mis rutas
-                </a>
-
-                <a class="btn btn-outline-secondary"
-                   asp-controller="Rutas" asp-action="Create">
-                    Crear nueva ruta
-                </a>
-            </p>
-
-            <h3 class="mt-4">Rutas sugeridas (más solicitadas este año)</h3>
-
-            @if (Model.RutasSugeridas != null && Model.RutasSugeridas.Any())
+        <div class="hero-actions">
+            @if (!(User.Identity?.IsAuthenticated ?? false))
             {
-                <table class="table table-striped">
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+                <a class="btn btn-outline-primary" asp-controller="Account" asp-action="Register">Crear cuenta</a>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-controller="Rutas" asp-action="Buscar">Buscar rutas</a>
+                @if (Model.EsConductor)
+                {
+                    <a class="btn btn-outline-primary" asp-controller="Rutas" asp-action="Create">Crear nueva ruta</a>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="hero-card">
+        @if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            <h3>Experiencia premium</h3>
+            <p>Visual oscuro, componentes glassmorphism y botones gradiente para un flujo más profesional.</p>
+            <div class="badge-soft">🔐 Autenticación</div>
+            <div class="badge-soft mt-2">🛣️ Gestión de rutas</div>
+            <div class="badge-soft mt-2">🛰️ Buscador inteligente</div>
+        }
+        else
+        {
+            <h3>Hola, @Model.NombreUsuario</h3>
+            <p class="mb-2">Tu rol determina los accesos rápidos:</p>
+            <div class="badge-soft">@((Model.EsAdmin) ? "Administrador" : "Usuario")</div>
+            @if (Model.EsConductor)
+            {
+                <div class="badge-soft mt-2">🚗 Conductor activo</div>
+            }
+        }
+    </div>
+</div>
+
+@if (!(User.Identity?.IsAuthenticated ?? false))
+{
+    <div class="card-tile">
+        <div class="card-tile__label">Acceso requerido</div>
+        <p class="mb-3">Para usar CampusRide inicia sesión o crea una cuenta. Conservamos tus rutas y solicitudes.</p>
+        <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+    </div>
+}
+else
+{
+    @* ===== PANEL ADMIN (puede gestionar usuarios, rutas y sectores) ===== *@
+    @if (Model.EsAdmin)
+    {
+        <div class="section-title">Panel de administración</div>
+        <div class="card-grid">
+            <div class="card-tile">
+                <div class="card-tile__label">Usuarios</div>
+                <p>Administra roles, credenciales y accesos de la plataforma.</p>
+                <a class="btn btn-outline-primary" asp-controller="Users" asp-action="Index">Gestionar usuarios</a>
+            </div>
+            <div class="card-tile">
+                <div class="card-tile__label">Rutas</div>
+                <p>Consulta o ajusta rutas activas para mantener la red optimizada.</p>
+                <a class="btn btn-outline-primary" asp-controller="Rutas" asp-action="Index">Ver rutas</a>
+            </div>
+            <div class="card-tile">
+                <div class="card-tile__label">Sectores</div>
+                <p>Actualiza los sectores destino disponibles y mantén los catálogos al día.</p>
+                <a class="btn btn-outline-primary" asp-controller="Sectores" asp-action="Index">Administrar sectores</a>
+            </div>
+        </div>
+    }
+
+    @* ===== PANEL CONDUCTOR ===== *@
+    @if (Model.EsConductor)
+    {
+        <div class="section-title">Panel de conductor</div>
+        <div class="hero-actions mb-3">
+            <a class="btn btn-primary" asp-controller="Rutas" asp-action="Index">Mis rutas</a>
+            <a class="btn btn-outline-secondary" asp-controller="Rutas" asp-action="Create">Crear nueva ruta</a>
+        </div>
+
+        <h4 class="mt-3">Rutas sugeridas (más solicitadas este año)</h4>
+
+        @if (Model.RutasSugeridas != null && Model.RutasSugeridas.Any())
+        {
+            <div class="card-tile">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Campus de salida</th>
@@ -83,20 +122,16 @@
                         }
                     </tbody>
                 </table>
-            }
-            else
-            {
-                <p>No hay suficientes datos de búsquedas todavía para sugerir rutas.</p>
-            }
+            </div>
         }
-
-        @* ===== BUSCADOR PARA CUALQUIER USUARIO AUTENTICADO ===== *@
-        <h3 class="mt-4">Buscar rutas como pasajero</h3>
-        <p>
-            <a class="btn btn-primary"
-               asp-controller="Rutas" asp-action="Buscar">
-                Buscar rutas
-            </a>
-        </p>
+        else
+        {
+            <div class="empty-state">No hay suficientes datos de búsquedas todavía para sugerir rutas.</div>
+        }
     }
-</div>
+
+    @* ===== BUSCADOR PARA CUALQUIER USUARIO AUTENTICADO ===== *@
+    <div class="section-title">Buscar rutas como pasajero</div>
+    <p>Encuentra las opciones con mejor horario y destino de forma rápida.</p>
+    <a class="btn btn-primary" asp-controller="Rutas" asp-action="Buscar">Buscar rutas</a>
+}
