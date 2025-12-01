@@ -331,7 +331,6 @@ namespace WebCrudLogin.Controllers
 
 
         // ========== 6) UNIRSE A UNA RUTA ==========
-
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -346,6 +345,21 @@ namespace WebCrudLogin.Controllers
 
             if (ruta == null) return NotFound();
 
+            var username = User.Identity!.Name!;
+            var usuario = await _context.Users
+                .SingleAsync(u => u.Username == username);
+
+            // 1) Verificar si YA está unido a esta ruta
+            bool yaUnido = await _context.ReservasRuta
+                .AnyAsync(rr => rr.RutaId == ruta.Id && rr.UsuarioId == usuario.Id);
+
+            if (yaUnido)
+            {
+                TempData["JoinMessage"] = "Ya estás unido a esta ruta, no puedes unirte dos veces.";
+                return RedirectToAction(nameof(Buscar));
+            }
+
+            // 2) Verificar cupos
             if (ruta.CuposOcupados >= ruta.CuposTotales)
             {
                 TempData["JoinMessage"] = "Esta ruta ya está llena.";
@@ -353,6 +367,15 @@ namespace WebCrudLogin.Controllers
             else
             {
                 ruta.CuposOcupados++;
+
+                var reserva = new ReservaRuta
+                {
+                    RutaId = ruta.Id,
+                    UsuarioId = usuario.Id,
+                    FechaUnion = DateTime.Now
+                };
+
+                _context.ReservasRuta.Add(reserva);
                 await _context.SaveChangesAsync();
 
                 TempData["JoinMessage"] =
