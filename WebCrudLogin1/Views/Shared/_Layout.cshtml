@@ -1,4 +1,5 @@
 ﻿﻿
+﻿
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -34,7 +35,6 @@
             </div>
             <nav class="nav-grid">
                 <a class="nav-chip" asp-controller="Home" asp-action="Index">Inicio</a>
-                <a class="nav-chip" asp-controller="Products" asp-action="Index">Products</a>
 
                 @if (User?.Identity?.IsAuthenticated ?? false)
                 {

@@ -236,6 +236,12 @@ select {
     border-spacing: 0 8px;
 }
 
+    .table.table-striped,
+    .table.table-striped th,
+    .table.table-striped td {
+        color: #f8fafc !important;
+    }
+
     .table thead tr th {
         color: var(--muted);
         font-weight: 700;
