@@ -1,56 +1,68 @@
 ﻿@model WebCrudLogin.Models.RegisterViewModel
+
 @{
-    ViewData["Title"] = "Registro";
+    ViewData["Title"] = "Registrarse";
 }
 
-<div class="auth-page">
-    <div class="auth-shell">
-        <section class="auth-info">
-            <h1>Create your account ✨</h1>
-            <p>Regístrate para acceder a la sección protegida y administrar el CRUD.</p>
-        </section>
+<div class="cr-auth-container">
+    <div class="cr-auth-card">
+        <h2 class="mb-3">Crear cuenta</h2>
+        <p class="text-muted mb-4">
+            Regístrate en CampusRide y elige si deseas ser usuario pasajero o conductor.
+        </p>
 
-        <section class="auth-card">
-            <div class="auth-card__head">
-                <h2 class="auth-card__title">Crear cuenta</h2>
+        <form asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-control" />
+                <span asp-validation-for="Username" class="text-danger"></span>
             </div>
-            <div class="auth-card__body">
-                <form asp-action="Register" method="post" class="auth-form">
-                    @Html.AntiForgeryToken()
 
-                    <div>
-                        <label asp-for="Username" class="auth-label"></label>
-                        <input asp-for="Username" class="auth-input" placeholder="tu_usuario" />
-                        <span class="field-validation-error" asp-validation-for="Username"></span>
-                    </div>
-
-                    <div>
-                        <label asp-for="Password" class="auth-label"></label>
-                        <input asp-for="Password" class="auth-input" placeholder="••••••••" />
-                        <span class="field-validation-error" asp-validation-for="Password"></span>
-                    </div>
-
-                    <div>
-                        <label asp-for="ConfirmPassword" class="auth-label"></label>
-                        <input asp-for="ConfirmPassword" class="auth-input" placeholder="••••••••" />
-                        <span class="field-validation-error" asp-validation-for="ConfirmPassword"></span>
-                    </div>
-
-                    <button type="submit" class="auth-btn">Registrarme</button>
-
-                    <div class="auth-meta">
-                        ¿Ya tienes cuenta? <a asp-action="Login">Inicia sesión</a>
-                    </div>
-                </form>
+            <div class="mb-3">
+                <label asp-for="Cedula" class="form-label"></label>
+                <input asp-for="Cedula" class="form-control" />
+                <span asp-validation-for="Cedula" class="text-danger"></span>
+                <div class="form-text">
+                    La cédula se valida en el servidor y debe ser única en el sistema.
+                </div>
             </div>
-        </section>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Role" class="form-label"></label>
+                <select asp-for="Role" class="form-select">
+                    <option value="User">Usuario (pasajero)</option>
+                    <option value="Conductor">Conductor</option>
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 mb-2">
+                Registrarme
+            </button>
+
+            <a asp-action="Login" class="btn btn-outline-light w-100">
+                ¿Ya tienes cuenta? Inicia sesión
+            </a>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-}
-
-@section Styles {
-    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
 }

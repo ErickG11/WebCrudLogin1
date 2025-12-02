@@ -19,38 +19,65 @@ namespace WebCrudLogin.Controllers
         [HttpGet]
         public IActionResult Register() => View(new RegisterViewModel());
 
+
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+                return View(model);
 
-            var exists = await _context.Users.AnyAsync(u => u.Username == model.Username);
-            if (exists)
+            // Normalizamos entradas (quitamos espacios)
+            var username = model.Username.Trim();
+            var cedula = model.Cedula.Trim();
+
+            // 1) Validar que el rol sea solo "User" o "Conductor"
+            if (model.Role != "User" && model.Role != "Conductor")
+            {
+                ModelState.AddModelError(nameof(model.Role),
+                    "Tipo de cuenta inválido. Debe ser Usuario o Conductor.");
+                return View(model);
+            }
+
+            // 2) Validar username único
+            var existsUsername = await _context.Users
+                .AnyAsync(u => u.Username == username);
+            if (existsUsername)
             {
                 ModelState.AddModelError(nameof(model.Username), "Ese usuario ya existe.");
                 return View(model);
             }
 
+            // 3) Validar cédula única (dato sensible, validado en back-end)
+            var existsCedula = await _context.Users
+                .AnyAsync(u => u.Cedula == cedula);
+            if (existsCedula)
+            {
+                ModelState.AddModelError(nameof(model.Cedula),
+                    "Esta cédula ya está registrada en el sistema.");
+                return View(model);
+            }
+
+            // 4) Crear usuario con la cédula real y el rol elegido
             var user = new User
             {
-                Username = model.Username,
-                // Si quieres, aquí podrías pedir cédula al registrarse normal, pero en este diseño
-                // el Admin crea usuarios con cédula. Así que usamos un valor temporal vacío.
-                Cedula = "0000000000",
+                Username = username,
+                Cedula = cedula,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-                Role = "User" // usuarios nuevos = rol User
+                Role = model.Role  // "User" o "Conductor"
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
+            // 5) Iniciar sesión automáticamente
             await SignIn(user.Username, user.Role);
 
-            // Después de registrarse, ir al Home
+            // 6) Ir al Home después de registrarse
             return RedirectToAction("Index", "Home");
         }
+
 
         // ====== LOGIN ======
         [AllowAnonymous]
