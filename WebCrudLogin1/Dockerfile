@@ -1,26 +1,25 @@
-# ===== STAGE 1: build =====
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# 1) Etapa de build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copiamos todo el repo
+# Copiar todo el código
 COPY . .
 
-# Restauramos solo el proyecto web
-RUN dotnet restore "WebCrudLogin/WebCrudLogin.csproj"
+# Restaurar paquetes
+RUN dotnet restore
 
-# Publicamos el proyecto web en modo Release
-RUN dotnet publish "WebCrudLogin/WebCrudLogin.csproj" -c Release -o /app
+# Publicar en modo Release
+RUN dotnet publish -c Release -o /app/publish
 
-# ===== STAGE 2: runtime =====
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+# 2) Etapa de runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Copiamos lo publicado desde la imagen de build
-COPY --from=build /app ./
+# Copiar artefactos publicados
+COPY --from=build /app/publish ./
 
-# Render detecta el puerto automáticamente; usamos 8080
-ENV ASPNETCORE_URLS=http://0.0.0.0:8080
-EXPOSE 8080
+# Exponer puerto 10000 (el que usaremos en Render)
+EXPOSE 10000
 
-# Ejecutamos la app
-ENTRYPOINT ["dotnet", "WebCrudLogin.dll"]
+# Lanzar la aplicación en ese puerto
+CMD ["dotnet", "WebCrudLogin.dll", "--urls", "http://0.0.0.0:10000"]
